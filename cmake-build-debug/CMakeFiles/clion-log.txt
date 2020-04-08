@@ -1,0 +1,4 @@
+/Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /Users/miroslavparapanov/workspace/JSON-parser
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /Users/miroslavparapanov/workspace/JSON-parser/cmake-build-debug

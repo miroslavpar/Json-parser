@@ -1,0 +1,3 @@
+/Users/miroslavparapanov/workspace/JSON-parser/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/Users/miroslavparapanov/workspace/JSON-parser/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/miroslavparapanov/workspace/JSON-parser/cmake-build-debug/CMakeFiles/JSON_parser.dir
