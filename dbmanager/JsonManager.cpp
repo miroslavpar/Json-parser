@@ -33,17 +33,17 @@ double JsonManager::getNumber(char symbol,stringstream& jsonStream){
             symbol = jsonStream.get();
         }
         else
-        throw "After '-' is not a digit";
+        throw runtime_error("After '-' is not a digit");
     }
     if(isOperation(symbol) || !isDigit(symbol)){
-        throw "Double operations scanned";
+        throw runtime_error("Double operations scanned");
     }
     do{
         if(symbol =='.') {
             parsingStream << symbol;
             symbol = jsonStream.get();
             if(!isDigit(symbol)){
-                throw "After '.' is not a number";
+                throw runtime_error("After '.' is not a number");
             }
             parsingStream << symbol;
             symbol = jsonStream.get();
@@ -54,11 +54,11 @@ double JsonManager::getNumber(char symbol,stringstream& jsonStream){
     }
     while (isDigit(symbol) || symbol == '.');
     if(symbol != ','){
-        throw "After the number there must be ',' ";
+        throw runtime_error("After the number there must be ',' ");
     }
     symbol = jsonStream.get();
     if (!isWhiteSpace(symbol)) {
-        throw "After ',' there must be whitespace or \" ";
+        throw runtime_error("After ',' there must be whitespace or \" ");
     }
     readWhitespace(jsonStream);
     symbol = jsonStream.get();
@@ -69,7 +69,7 @@ double JsonManager::getNumber(char symbol,stringstream& jsonStream){
 double JsonManager::geteNumber(char symbol, stringstream& jsonStream){
     double eNum = 2.72;
     if (symbol != 'e'){
-        throw " Expected to be 'e' ";
+        throw runtime_error(" Expected to be 'e' ");
     }
     symbol = jsonStream.get();
     if(!isOperation(symbol)){
@@ -77,7 +77,7 @@ double JsonManager::geteNumber(char symbol, stringstream& jsonStream){
             double directlyAfterE = getNumber(symbol,jsonStream);
             return eNum * directlyAfterE;
         }
-        throw "After 'e' there must be a operation";
+        throw runtime_error("After 'e' there must be a operation");
     }
     char operation = whichOperation(symbol);
     double temp = getNumber(symbol,jsonStream);
@@ -95,7 +95,7 @@ JsonValue* JsonManager::readNumber(stringstream& jsonStream) {
         double numValue = getNumber(symbol,jsonStream);
         return new JsonNumber(numValue);
         }
-//    else if(isDigitSomethingElse(symbol)){
+//   else if(isDigitSomethingElse(symbol)){
 //        return new JsonNumber(//from a function);
 //    }
 
@@ -112,7 +112,7 @@ void JsonManager::readWhitespace(stringstream &jsonStream){
 
 string JsonManager::readString(stringstream& jsonStream) {
     if(jsonStream.get() != '"'){
-        throw "It's not starting with \" ";
+        throw runtime_error("It's not starting with \" ");
     }
     char symbol = jsonStream.get();
     vector<char> key;
@@ -125,7 +125,7 @@ string JsonManager::readString(stringstream& jsonStream) {
 JsonArray* JsonManager::readArray(stringstream& jsonStream) {
     char symbol = jsonStream.get();
     if(symbol != '['){
-        throw " It's not starting with '[' ";
+        throw runtime_error(" It's not starting with '[' ");
     }
     readWhitespace(jsonStream);
     symbol = jsonStream.peek();
@@ -142,7 +142,7 @@ JsonArray* JsonManager::readArray(stringstream& jsonStream) {
     while(symbol == ',');
 
     if(symbol != ']'){
-        throw "Expected : ']'";
+        throw runtime_error("Expected : ']'");
     }
     return new JsonArray(arrayValue);
 }
@@ -168,20 +168,20 @@ JsonValue* JsonManager::readValue(stringstream& jsonStream) {
         }
         case 'n':{
             if (!readLiteral(jsonStream, "null"))
-                throw "Expected to be : null ";
+                throw runtime_error( "Expected to be : null ");
             value = nullptr;
             break;
         }
         case 't':{
             if (!readLiteral(jsonStream, "true")){
-                throw"Expected to be : true ";
+                throw runtime_error("Expected to be : true ");
             }
             value = new JsonBoolean(true);
             break;
         }
         case 'f': {
             if (!readLiteral(jsonStream, "false")) {
-                throw "Expected to be : false ";
+                throw runtime_error("Expected to be : false ");
             }
             value = new JsonBoolean(false);
             break;
@@ -194,7 +194,7 @@ JsonValue* JsonManager::readValue(stringstream& jsonStream) {
             value =  readNumber(jsonStream);
             break;
         }
-        default: throw "Unexpected Value" ;
+        default: throw runtime_error("Unexpected Value") ;
     }
     readWhitespace(jsonStream);
     return value;
@@ -204,7 +204,7 @@ JsonObject* JsonManager::readObject(stringstream& jsonStream) {
     readWhitespace(jsonStream);
     char symbol = jsonStream.get();
     if(symbol != '{'){
-        throw "It's not '{' ";
+        throw runtime_error("It's not '{' ");
     }
     readWhitespace(jsonStream);
     symbol = jsonStream.peek();
@@ -220,7 +220,7 @@ JsonObject* JsonManager::readObject(stringstream& jsonStream) {
             symbol = jsonStream.get();
 
             if (symbol != ':') {
-                throw "Expected ':' ";
+                throw runtime_error("Expected ':' ");
             }
 
             map[key] = readValue(jsonStream);
@@ -229,7 +229,7 @@ JsonObject* JsonManager::readObject(stringstream& jsonStream) {
         while(symbol == ',');
     }
     if(symbol != '}'){
-        throw " Expected '}' ";
+        throw runtime_error(" Expected '}' ");
     }
     return new JsonObject(map);
 }
@@ -242,9 +242,10 @@ JsonValue* JsonManager::readJson(stringstream& jsonStream) {
             return readObject(jsonStream);
         case '[':
             return readArray(jsonStream);
-        default: throw " Unexpected character occured !";
+        default: throw runtime_error(" Unexpected character occured !");
     }
 }
 void JsonManager::validateJsonFile(){
+
 
 }
