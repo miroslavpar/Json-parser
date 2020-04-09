@@ -11,17 +11,101 @@
 #include <set>
 #include <vector>
 using namespace std;
+bool JsonManager::isOperation(char symbol){
+    return symbol =='+' || symbol =='-';
+}
+bool JsonManager::isDigit(char symbol) {
+    return symbol >='1' && symbol <= '9';
+}
+char JsonManager::whichOperation(char symbol){
+    if(symbol =='+') {
+        symbol = '+';
+        return symbol;
+    }
+    symbol = '-';
+    return symbol;
+}
+double JsonManager::getNumber(char symbol,stringstream& jsonStream){
+    stringstream parsingStream;
+    if(!isDigit(symbol)){
+        if(isOperation(symbol)){
+            symbol = jsonStream.get();
+        }
+        else
+        throw "After '-' is not a digit";
+    }
+    if(isOperation(symbol) || !isDigit(symbol)){
+        throw "Double operations scanned";
+    }
+    do{
+        if(symbol =='.') {
+            parsingStream << symbol;
+            symbol = jsonStream.get();
+            if(!isDigit(symbol)){
+                throw "After '.' is not a number";
+            }
+            parsingStream << symbol;
+            symbol = jsonStream.get();
+            continue;
+        }
+        parsingStream << symbol;
+        symbol = jsonStream.get();
+    }
+    while (isDigit(symbol) || symbol == '.');
+    if(symbol != ','){
+        throw "After the number there must be ',' ";
+    }
+    symbol = jsonStream.get();
+    if (!isWhiteSpace(symbol)) {
+        throw "After ',' there must be whitespace or \" ";
+    }
+    readWhitespace(jsonStream);
+    symbol = jsonStream.get();
+    double returnedNum = 0;
+    parsingStream >> returnedNum;
+    return returnedNum;
+}
+double JsonManager::geteNumber(char symbol, stringstream& jsonStream){
+    double eNum = 2.72;
+    if (symbol != 'e'){
+        throw " Expected to be 'e' ";
+    }
+    symbol = jsonStream.get();
+    if(!isOperation(symbol)){
+        if(isDigit(symbol)){
+            double directlyAfterE = getNumber(symbol,jsonStream);
+            return eNum * directlyAfterE;
+        }
+        throw "After 'e' there must be a operation";
+    }
+    char operation = whichOperation(symbol);
+    double temp = getNumber(symbol,jsonStream);
+    if(operation == '+'){
+        return eNum + temp;
+    }
+    else {
+        return eNum - temp;
+    }
+
+}
+JsonValue* JsonManager::readDigit(char symbol,stringstream& jsonStream) {
+    if(isDigit(symbol)){
+        double numValue = getNumber(symbol,jsonStream);
+        return new JsonNumber(numValue);
+        }
+//    else if(isDigitSomethingElse(symbol)){
+//        return new JsonNumber(//from a function);
+//    }
+
+}
 bool JsonManager::isWhiteSpace(char symbol) {
     string whitespaces = " \n\r\t";
     return whitespaces.find(symbol) != string::npos;
 }
-char JsonManager::readWhitespace(stringstream &jsonStream){
-    string whitespaceChars = " \n\r\t";
-    char symbol = jsonStream.get();
-    while (whitespaceChars.find(symbol) != string::npos) {
-        symbol = jsonStream.get();
+void JsonManager::readWhitespace(stringstream &jsonStream){
+    while (isWhiteSpace(jsonStream.peek())) {
+        jsonStream.get();
     }
-    return symbol;
 }
 
 string JsonManager::readString(stringstream& jsonStream) {
@@ -33,27 +117,29 @@ string JsonManager::readString(stringstream& jsonStream) {
     }
     return string(key.begin(),key.end());
 }
-bool JsonManager::isDigit(char symbol) {
-    if(symbol > '0' && symbol < '9')
-        return symbol;
-}
 JsonArray* JsonManager::readArray(stringstream& jsonStream) {
     char symbol = jsonStream.get();
     if (symbol == ']'){
         return new JsonArray();
     }
     vector<JsonValue*> arrayValue;
-    if(symbol == ' ')symbol = readWhitespace(jsonStream);
+    if(symbol == ' '){
+        readWhitespace(jsonStream);
+        symbol = jsonStream.get();
+    }
     do {
         if (symbol == ','){
-            symbol = readWhitespace(jsonStream);
+            readWhitespace(jsonStream);
+            symbol = jsonStream.get();
+
         }
         arrayValue.push_back(readValue(jsonStream,symbol));
         symbol = jsonStream.get();
     }
     while(symbol == ',');
     if(isWhiteSpace(symbol)){
-        symbol = readWhitespace(jsonStream);
+        readWhitespace(jsonStream);
+        symbol = jsonStream.get();
     }
     if(symbol != ']'){
         throw "Expected : ']'";
@@ -87,6 +173,16 @@ JsonValue* JsonManager::readValue(stringstream& jsonStream, char symbol) {
             }
             return new JsonBoolean(false);
         }
+        case '-':{
+            symbol = jsonStream.get();
+            return readDigit(symbol,jsonStream);
+        }
+        case 'e':{
+            break;
+        }
+        case 'E':{
+            break;
+        }
         default: {
             if (isDigit(symbol)){
                 return new JsonNumber((double)symbol - '0');
@@ -99,26 +195,30 @@ JsonValue* JsonManager::readValue(stringstream& jsonStream, char symbol) {
 }
 
 JsonObject* JsonManager::readObject(stringstream& jsonStream) {
-    char symbol = readWhitespace(jsonStream);
+    readWhitespace(jsonStream);
+    char symbol = jsonStream.get();
     unordered_map<string, JsonValue*> map;
     string key,keyValue;
     if(symbol == '"') {
         do {
             if(symbol == ',') {
-                symbol = readWhitespace(jsonStream);
+                readWhitespace(jsonStream);
+                symbol = jsonStream.get();
                 if(symbol != '"'){
                     throw "Unexpected character";
                 }
             }
             key = readString(jsonStream);
 
-            symbol = readWhitespace(jsonStream);
+            readWhitespace(jsonStream);
+            symbol = jsonStream.get();
 
             if (symbol != ':') {
                 throw "Expected ':' ";
             }
 
-            symbol = readWhitespace(jsonStream);
+            readWhitespace(jsonStream);
+            symbol = jsonStream.get();
 
             map[key] = readValue(jsonStream, symbol);
             symbol = jsonStream.get();
@@ -126,7 +226,8 @@ JsonObject* JsonManager::readObject(stringstream& jsonStream) {
         }
         while(symbol == ',');
         if(isWhiteSpace(symbol)) {
-            symbol = readWhitespace(jsonStream);
+            readWhitespace(jsonStream);
+            symbol = jsonStream.get();
         }
     }
     if(symbol != '}'){
@@ -136,7 +237,8 @@ JsonObject* JsonManager::readObject(stringstream& jsonStream) {
 }
 
 JsonValue* JsonManager::readJson(stringstream& jsonStream) {
-    char symbol = readWhitespace(jsonStream);
+    readWhitespace(jsonStream);
+    char symbol = jsonStream.get();
     switch (symbol) {
         case '{' :
             return readObject(jsonStream);

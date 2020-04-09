@@ -17,13 +17,26 @@ using namespace std;
 class JsonManager {
 private:
     const string dbFile;
+
+
     JsonArray* readArray (stringstream&);
     JsonValue* readValue (stringstream&,char);
-    bool isDigit(char);
     JsonObject* readObject(stringstream&);
     string readString(stringstream&);
-    char readWhitespace(stringstream&);
+    JsonValue* readDigit(char,stringstream&);
+
+// Helping functions:
+    void readWhitespace(stringstream&);
     bool isWhiteSpace(char);
+    bool isOperation(char);
+    char whichOperation(char);
+    bool isDigit(char);
+
+
+public:double geteNumber(char, stringstream&);
+    double getNumber(char,stringstream&);
+
+
 public:
     void validateJsonFile();
     JsonValue* readJson(stringstream&);
