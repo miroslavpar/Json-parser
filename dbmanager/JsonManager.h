@@ -20,10 +20,10 @@ private:
 
 
     JsonArray* readArray (stringstream&);
-    JsonValue* readValue (stringstream&,char);
+    JsonValue* readValue (stringstream&);
     JsonObject* readObject(stringstream&);
     string readString(stringstream&);
-    JsonValue* readDigit(char,stringstream&);
+    JsonValue* readNumber(stringstream&);
 
 // Helping functions:
     void readWhitespace(stringstream&);
@@ -31,6 +31,7 @@ private:
     bool isOperation(char);
     char whichOperation(char);
     bool isDigit(char);
+    bool readLiteral(stringstream&,const string&);
 
 
 public:double geteNumber(char, stringstream&);

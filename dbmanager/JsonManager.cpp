@@ -9,6 +9,7 @@
 #include "../model/JsonNumber.h"
 #include <iostream>
 #include <set>
+#include <string>
 #include <vector>
 using namespace std;
 bool JsonManager::isOperation(char symbol){
@@ -88,7 +89,8 @@ double JsonManager::geteNumber(char symbol, stringstream& jsonStream){
     }
 
 }
-JsonValue* JsonManager::readDigit(char symbol,stringstream& jsonStream) {
+JsonValue* JsonManager::readNumber(stringstream& jsonStream) {
+    char symbol = jsonStream.get();
     if(isDigit(symbol)){
         double numValue = getNumber(symbol,jsonStream);
         return new JsonNumber(numValue);
@@ -109,6 +111,9 @@ void JsonManager::readWhitespace(stringstream &jsonStream){
 }
 
 string JsonManager::readString(stringstream& jsonStream) {
+    if(jsonStream.get() != '"'){
+        throw "It's not starting with \" ";
+    }
     char symbol = jsonStream.get();
     vector<char> key;
     while (symbol != '"') {
@@ -119,95 +124,96 @@ string JsonManager::readString(stringstream& jsonStream) {
 }
 JsonArray* JsonManager::readArray(stringstream& jsonStream) {
     char symbol = jsonStream.get();
+    if(symbol != '['){
+        throw " It's not starting with '[' ";
+    }
+    readWhitespace(jsonStream);
+    symbol = jsonStream.peek();
     if (symbol == ']'){
+        jsonStream.get();
         return new JsonArray();
     }
     vector<JsonValue*> arrayValue;
-    if(symbol == ' '){
-        readWhitespace(jsonStream);
-        symbol = jsonStream.get();
-    }
-    do {
-        if (symbol == ','){
-            readWhitespace(jsonStream);
-            symbol = jsonStream.get();
 
-        }
-        arrayValue.push_back(readValue(jsonStream,symbol));
+    do {
+        arrayValue.push_back(readValue(jsonStream));
         symbol = jsonStream.get();
     }
     while(symbol == ',');
-    if(isWhiteSpace(symbol)){
-        readWhitespace(jsonStream);
-        symbol = jsonStream.get();
-    }
+
     if(symbol != ']'){
         throw "Expected : ']'";
     }
     return new JsonArray(arrayValue);
 }
-JsonValue* JsonManager::readValue(stringstream& jsonStream, char symbol) {
-    switch (symbol) {
+bool JsonManager::readLiteral(stringstream& jsonStream, const string& exp){
+    char buffer[exp.size()];
+    jsonStream.read(buffer, exp.size());
+    return exp == buffer;
+}
+JsonValue* JsonManager::readValue(stringstream& jsonStream) {
+    readWhitespace(jsonStream);
+    JsonValue* value;
+    switch (jsonStream.peek()) {
         case '{' :
-            return readObject(jsonStream);
+            value = readObject(jsonStream);
+            break;
         case '[' :
-            return readArray(jsonStream);
+            value = readArray(jsonStream);
+            break;
         case '"' : {
             string keyValue = readString(jsonStream);
-            return new JsonString(keyValue);
+            value = new JsonString(keyValue);
+            break;
         }
         case 'n':{
-            if (jsonStream.get() != 'u' || jsonStream.get() != 'l' || jsonStream.get() != 'l')
+            if (!readLiteral(jsonStream, "null"))
                 throw "Expected to be : null ";
-            return nullptr;
+            value = nullptr;
+            break;
         }
         case 't':{
-            if (jsonStream.get() != 'r' || jsonStream.get() != 'u' || jsonStream.get() != 'e'){
+            if (!readLiteral(jsonStream, "true")){
                 throw"Expected to be : true ";
             }
-            return new JsonBoolean(true);
+            value = new JsonBoolean(true);
+            break;
         }
         case 'f': {
-            if (jsonStream.get() != 'a' || jsonStream.get() != 'l' || jsonStream.get() != 's' || jsonStream.get() != 'e') {
+            if (!readLiteral(jsonStream, "false")) {
                 throw "Expected to be : false ";
             }
-            return new JsonBoolean(false);
+            value = new JsonBoolean(false);
+            break;
         }
         case '-':{
-            symbol = jsonStream.get();
-            return readDigit(symbol,jsonStream);
-        }
-        case 'e':{
+            value = readNumber(jsonStream);
             break;
         }
-        case 'E':{
+        case '0':{
+            value =  readNumber(jsonStream);
             break;
         }
-        default: {
-            if (isDigit(symbol)){
-                return new JsonNumber((double)symbol - '0');
-            }
-            else {
-                throw "Unexpected Value" ;
-            }
-        }
+        default: throw "Unexpected Value" ;
     }
+    readWhitespace(jsonStream);
+    return value;
 }
 
 JsonObject* JsonManager::readObject(stringstream& jsonStream) {
     readWhitespace(jsonStream);
     char symbol = jsonStream.get();
+    if(symbol != '{'){
+        throw "It's not '{' ";
+    }
+    readWhitespace(jsonStream);
+    symbol = jsonStream.peek();
     unordered_map<string, JsonValue*> map;
     string key,keyValue;
     if(symbol == '"') {
         do {
-            if(symbol == ',') {
-                readWhitespace(jsonStream);
-                symbol = jsonStream.get();
-                if(symbol != '"'){
-                    throw "Unexpected character";
-                }
-            }
+            readWhitespace(jsonStream);
+
             key = readString(jsonStream);
 
             readWhitespace(jsonStream);
@@ -217,18 +223,10 @@ JsonObject* JsonManager::readObject(stringstream& jsonStream) {
                 throw "Expected ':' ";
             }
 
-            readWhitespace(jsonStream);
+            map[key] = readValue(jsonStream);
             symbol = jsonStream.get();
-
-            map[key] = readValue(jsonStream, symbol);
-            symbol = jsonStream.get();
-
         }
         while(symbol == ',');
-        if(isWhiteSpace(symbol)) {
-            readWhitespace(jsonStream);
-            symbol = jsonStream.get();
-        }
     }
     if(symbol != '}'){
         throw " Expected '}' ";
@@ -238,7 +236,7 @@ JsonObject* JsonManager::readObject(stringstream& jsonStream) {
 
 JsonValue* JsonManager::readJson(stringstream& jsonStream) {
     readWhitespace(jsonStream);
-    char symbol = jsonStream.get();
+    char symbol = jsonStream.peek();
     switch (symbol) {
         case '{' :
             return readObject(jsonStream);
