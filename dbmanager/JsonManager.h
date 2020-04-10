@@ -29,7 +29,6 @@ private:
     void readWhitespace(stringstream&);
     bool isWhiteSpace(char);
     bool isOperation(char);
-    char whichOperation(char);
     bool isDigit(char);
     bool readLiteral(stringstream&,const string&);
 
