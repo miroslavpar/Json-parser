@@ -10,10 +10,9 @@ class JsonNumber : public JsonValue {
 private:
     double num;
 public:
-    JsonNumber(double _num) : num(_num){};
-    double getNum()const {return num;};
-    void print(){
-        cout << num<<',' <<endl;
-    }
+    JsonNumber(double);
+    void searchFromKey(string& );
+    void printJustValue();
+    void print();
 };
 #endif //JSON_PARSER_JSONNUMBER_H

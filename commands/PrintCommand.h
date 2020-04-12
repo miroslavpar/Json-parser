@@ -12,8 +12,7 @@ class PrintCommand : public ICommand {
 public:
     PrintCommand(): ICommand (std::string("print")) {};
     void execute(JsonManager& jsonManager) {
-        //TODO JSON-Manager , assert, calling function from JSON-Manager
-
+        assert(arguments.empty());
     }
 };
 #endif //JSON_PARSER_PRINTCOMMAND_H

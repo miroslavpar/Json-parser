@@ -7,25 +7,14 @@
 
 #include "JsonValue.h"
 #include <vector>
-#include <iostream>
 class JsonArray : public JsonValue {
 private:
     std::vector<JsonValue*> value;
 public:
-    JsonArray(){};
-    JsonArray(std::vector<JsonValue*>& _value):value(_value){};
-    std::vector<JsonValue*> getValue()const {return value;};
-    void print (){
-        std::cout <<'['<<std::endl;
-        int counter = 0;
-        for(auto& it : value) {
-            it->print();
-            counter++;
-//            if(counter != value.size()){
-//                std::cout<<',';
-//            }
-        }
-        std::cout << ']'<<endl;
-    }
+    JsonArray();
+    JsonArray(std::vector<JsonValue*>&);
+    void searchFromKey(string&);
+    void printJustValue();
+    void print ();
 };
 #endif //JSON_PARSER_JSONARRAY_H

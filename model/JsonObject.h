@@ -7,26 +7,16 @@
 
 #include "JsonValue.h"
 #include <unordered_map>
-#include <iostream>
+#include <stack>
+
 
 class JsonObject : public JsonValue {
 private:
     unordered_map<string,JsonValue*> properties;
 public:
-    JsonObject(unordered_map<string,JsonValue*>& _properties): properties(_properties){};
-    unordered_map<string,JsonValue*> getProperties()const {return properties;};
-    void print(){
-        std::cout << '{' <<std::endl;
-        int counter = 0;
-        for(auto& it : properties) {
-            std::cout << '"'<<it.first<<'"'<<' '<< ':';
-            it.second->print();
-            counter++;
-//            if(counter != properties.size() ){
-//                std::cout << ',';
-//            }
-        }
-        std::cout <<'}'<<std::endl;
-    }
+    JsonObject(unordered_map<string,JsonValue*>&);
+    void searchFromKey(string& );
+    void printJustValue();
+    void print();
 };
 #endif //JSON_PARSER_JSONOBJECT_H

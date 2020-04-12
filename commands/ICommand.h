@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <string>
+#include "../dbmanager/JsonManager.h"
 
 class ICommand {
 protected:
@@ -16,17 +17,16 @@ protected:
 public:
     ICommand(){};
     ICommand(const std::string& commandNameTemp): commandName(commandNameTemp) {};
-    //TODO JSON-Manager
-    virtual void execute(TXTPlaneManager &) {};
-    void setArguments(std::vector<std::string>& arguments) {
-        this->arguments = arguments;
+    virtual void execute(JsonManager &) {};
+    void setArguments(std::vector<std::string>& _arguments) {
+        this->arguments = _arguments;
     }
     std::string& convertToString() {
         return commandName;
     }
     virtual ~ICommand() {};
 };
-};
+
 
 
 #endif //JSON_PARSER_ICOMMAND_H

@@ -4,15 +4,10 @@
 
 #include "JsonManager.h"
 #include "../model/JsonString.h"
-#include "../model/JsonObject.h"
 #include "../model/JsonBoolean.h"
 #include "../model/JsonNumber.h"
-#include <iostream>
-#include <set>
-#include <string>
-#include <vector>
 #include <cmath>
-using namespace std;
+JsonManager::JsonManager(const string& _dbFile):dbFile(_dbFile) {}
 bool JsonManager::isOperation(char symbol){
     return symbol =='+' || symbol =='-';
 }
@@ -47,7 +42,7 @@ double JsonManager::getNumber(char symbol,stringstream& jsonStream){
             symbol = jsonStream.get();
         }
     }
-    while (isDigit(symbol) || symbol == '.');
+    while (isDigit(symbol) || symbol == '.' || symbol == '0');
     double power = 1;
     if(symbol == 'e'){
         power = geteNumber(symbol,jsonStream);
@@ -59,8 +54,8 @@ double JsonManager::getNumber(char symbol,stringstream& jsonStream){
     return pow(value, power);
 }
 double JsonManager::geteNumber(char symbol, stringstream& jsonStream){
-    if (symbol != 'e'){
-        throw runtime_error(" Expected to be 'e' ");
+    if (symbol != 'e' && symbol != 'E'){
+        throw runtime_error(" Expected to be 'e' or 'E' ");
     }
     symbol = jsonStream.get();
     if(isOperation(symbol)){
@@ -83,7 +78,7 @@ double JsonManager::geteNumber(char symbol, stringstream& jsonStream){
         return pow(10,value);
     }
     else {
-        throw runtime_error(" Expected digit after 'e' ");
+        throw runtime_error(" Expected digit after 'e', 'E' ");
     }
 }
 JsonValue* JsonManager::readNumber(stringstream& jsonStream) {
@@ -259,7 +254,36 @@ JsonValue* JsonManager::readJson(stringstream& jsonStream) {
         default: throw runtime_error(" Unexpected character occured !");
     }
 }
-void JsonManager::validateJsonFile(){
-
-
+stringstream JsonManager::openFile(){
+    ifstream jsonFile(dbFile, ios::in);
+    stringstream jsonStream;
+    string line;
+    while(!jsonFile.eof()){
+        getline(jsonFile, line);
+        jsonStream << line;
+    }
+    jsonFile.close();
+    return jsonStream;
+}
+bool JsonManager::validateJsonFile(){
+    stringstream jsonStream = openFile();
+    try {
+        readJson(jsonStream);
+    }
+    catch (const char* message){
+        cout << message << endl;
+        return false;
+    }
+    cout << " Json file is valid " << endl;
+    return true;
+}
+void JsonManager::print() {
+   stringstream jsonStream = openFile();
+   JsonValue* value = readJson(jsonStream);
+   value->print();
+}
+void JsonManager::search(string& key){
+    stringstream jsonStream = openFile();
+    JsonValue* value = readJson(jsonStream);
+    value->searchFromKey(key);
 }

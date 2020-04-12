@@ -13,8 +13,8 @@ class ValidateCommand : public ICommand {
 public:
     ValidateCommand(): ICommand (std::string("validate")) {};
     void execute(JsonManager& jsonManager) {
-        //TODO JSON-Manager , assert, calling function from JSON-Manager
-
+        assert(arguments.empty());
+        jsonManager.validateJsonFile();
     }
 };
 

@@ -6,15 +6,13 @@
 #define JSON_PARSER_JSONBOOLEAN_H
 
 #include "JsonValue.h"
-
 class JsonBoolean : public JsonValue {
 private:
     bool value;
 public:
-    JsonBoolean(bool _value):value(_value){};
-    bool getValue()const{return value;};
-    void print(){
-       std::cout << value <<',' <<endl;
-    }
+    JsonBoolean(bool);
+    void searchFromKey(string&);
+    void printJustValue();
+    void print();
 };
 #endif //JSON_PARSER_JSONBOOLEAN_H

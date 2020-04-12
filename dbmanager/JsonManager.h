@@ -5,10 +5,8 @@
 #ifndef JSON_PARSER_JSONMANAGER_H
 #define JSON_PARSER_JSONMANAGER_H
 
-#include <string>
 #include <fstream>
 #include <sstream>
-#include <unordered_map>
 #include "../model/JsonValue.h"
 #include "../model/JsonArray.h"
 #include "../model/JsonObject.h"
@@ -18,29 +16,29 @@ class JsonManager {
 private:
     const string dbFile;
 
-
+    //The main functionality :
     JsonArray* readArray (stringstream&);
     JsonValue* readValue (stringstream&);
     JsonObject* readObject(stringstream&);
     string readString(stringstream&);
     JsonValue* readNumber(stringstream&);
+    JsonValue* readJson(stringstream&);
 
-// Helping functions:
+
+    // Helping functions:
     void readWhitespace(stringstream&);
     bool isWhiteSpace(char);
     bool isOperation(char);
     bool isDigit(char);
     bool readLiteral(stringstream&,const string&);
-
-
-public:double geteNumber(char, stringstream&);
+    stringstream openFile();
+    double geteNumber(char, stringstream&);
     double getNumber(char,stringstream&);
-
-
 public:
-    void validateJsonFile();
-    JsonValue* readJson(stringstream&);
-
+    JsonManager(const string&);
+    bool validateJsonFile();
+    void print();
+    void search(string&);
 };
 
 
