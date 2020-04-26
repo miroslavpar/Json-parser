@@ -11,14 +11,14 @@
 
 class ICommand {
 protected:
-    std::string commandName;
-    std::vector<std::string> arguments;
+    string commandName;
+    vector<string> arguments;
 
 public:
     ICommand(){};
-    ICommand(const std::string& commandNameTemp): commandName(commandNameTemp) {};
+    ICommand(const string& commandNameTemp): commandName(commandNameTemp) {};
     virtual void execute(JsonManager &) {};
-    void setArguments(std::vector<std::string>& _arguments) {
+    void setArguments(vector<string>& _arguments) {
         this->arguments = _arguments;
     }
     std::string& convertToString() {

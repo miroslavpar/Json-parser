@@ -13,6 +13,7 @@ public:
     PrintCommand(): ICommand (std::string("print")) {};
     void execute(JsonManager& jsonManager) {
         assert(arguments.empty());
+        jsonManager.print();
     }
 };
 #endif //JSON_PARSER_PRINTCOMMAND_H

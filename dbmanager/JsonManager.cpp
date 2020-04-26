@@ -7,121 +7,8 @@
 #include "../model/JsonBoolean.h"
 #include "../model/JsonNumber.h"
 #include <cmath>
-JsonManager::JsonManager(const string& _dbFile):dbFile(_dbFile) {}
-bool JsonManager::isOperation(char symbol){
-    return symbol =='+' || symbol =='-';
-}
-bool JsonManager::isDigit(char symbol) {
-    return symbol >='1' && symbol <= '9';
-}
-double JsonManager::getNumber(char symbol,stringstream& jsonStream){
-    stringstream parsingStream;
-    if(!isDigit(symbol)){
-        throw runtime_error("Unexpected symbol in number");
-    }
-    int dotCounter = -1;
-    do{
-        if(symbol == '.'){
-            parsingStream << symbol;
-            dotCounter +=1;
-            if(dotCounter > 0){
-                throw runtime_error("too many '.");
-            }
-            if(!isDigit(jsonStream.peek())){
-                throw runtime_error("After . there must be a digit");
-            }
-            symbol = jsonStream.get();
-            continue;
-        }
-        parsingStream << symbol;
-        symbol = jsonStream.peek();
-        if(symbol == ','){
-            break;
-        }
-        else {
-            symbol = jsonStream.get();
-        }
-    }
-    while (isDigit(symbol) || symbol == '.' || symbol == '0');
-    double power = 1;
-    if(symbol == 'e'){
-        power = geteNumber(symbol,jsonStream);
-    }
-    readWhitespace(jsonStream);
 
-    double value = 0;
-    parsingStream >> value;
-    return pow(value, power);
-}
-double JsonManager::geteNumber(char symbol, stringstream& jsonStream){
-    if (symbol != 'e' && symbol != 'E'){
-        throw runtime_error(" Expected to be 'e' or 'E' ");
-    }
-    symbol = jsonStream.get();
-    if(isOperation(symbol)){
-        switch (symbol){
-            case '+':{
-                symbol = jsonStream.get();
-                double value = getNumber(symbol,jsonStream);
-                return pow(10,value);
-            }
-            case '-':{
-                symbol = jsonStream.get();
-                double value = getNumber(symbol,jsonStream);
-                return pow(10,-value);
-            }
-            default: throw runtime_error(" After operation there must be a digit ");
-        }
-    }
-    else if (isDigit(symbol)) {
-        double value = getNumber(symbol,jsonStream);
-        return pow(10,value);
-    }
-    else {
-        throw runtime_error(" Expected digit after 'e', 'E' ");
-    }
-}
-JsonValue* JsonManager::readNumber(stringstream& jsonStream) {
-    char symbol = jsonStream.get();
-    if(isDigit(symbol)){
-        double numValue = getNumber(symbol,jsonStream);
-        return new JsonNumber(numValue);
-        }
-    else if (symbol == '-'){
-        symbol = jsonStream.get();
-        double numValue = -1 * getNumber(symbol,jsonStream);
-        return new JsonNumber(numValue);
-    }
-    else if(symbol == 'e'){
-        return new JsonNumber(geteNumber(symbol,jsonStream));
-    }
-    else if(symbol == 'E'){
- //       return new JsonNumber(//from a function);
-    }
-    return nullptr;
-}
-bool JsonManager::isWhiteSpace(char symbol) {
-    string whitespaces = " \n\r\t";
-    return whitespaces.find(symbol) != string::npos;
-}
-void JsonManager::readWhitespace(stringstream &jsonStream){
-    while (isWhiteSpace(jsonStream.peek())) {
-        jsonStream.get();
-    }
-}
 
-string JsonManager::readString(stringstream& jsonStream) {
-    if(jsonStream.get() != '"'){
-        throw runtime_error("It's not starting with \" ");
-    }
-    char symbol = jsonStream.get();
-    vector<char> key;
-    while (symbol != '"') {
-        key.push_back(symbol);
-        symbol = jsonStream.get();
-    }
-    return string(key.begin(),key.end());
-}
 JsonArray* JsonManager::readArray(stringstream& jsonStream) {
     char symbol = jsonStream.get();
     if(symbol != '['){
@@ -145,11 +32,6 @@ JsonArray* JsonManager::readArray(stringstream& jsonStream) {
         throw runtime_error("Expected : ']'");
     }
     return new JsonArray(arrayValue);
-}
-bool JsonManager::readLiteral(stringstream& jsonStream, const string& exp){
-    char buffer[exp.size()];
-    jsonStream.read(buffer, exp.size());
-    return exp == buffer;
 }
 JsonValue* JsonManager::readValue(stringstream& jsonStream) {
     readWhitespace(jsonStream);
@@ -208,7 +90,6 @@ JsonValue* JsonManager::readValue(stringstream& jsonStream) {
     readWhitespace(jsonStream);
     return value;
 }
-
 JsonObject* JsonManager::readObject(stringstream& jsonStream) {
     readWhitespace(jsonStream);
     char symbol = jsonStream.get();
@@ -242,7 +123,37 @@ JsonObject* JsonManager::readObject(stringstream& jsonStream) {
     }
     return new JsonObject(map);
 }
-
+string JsonManager::readString(stringstream& jsonStream) {
+    if(jsonStream.get() != '"'){
+        throw runtime_error("It's not starting with \" ");
+    }
+    char symbol = jsonStream.get();
+    vector<char> key;
+    while (symbol != '"') {
+        key.push_back(symbol);
+        symbol = jsonStream.get();
+    }
+    return string(key.begin(),key.end());
+}
+JsonValue* JsonManager::readNumber(stringstream& jsonStream) {
+    char symbol = jsonStream.get();
+    if(isDigit(symbol)){
+        double numValue = getNumber(symbol,jsonStream);
+        return new JsonNumber(numValue);
+    }
+    else if (symbol == '-'){
+        symbol = jsonStream.get();
+        double numValue = -1 * getNumber(symbol,jsonStream);
+        return new JsonNumber(numValue);
+    }
+    else if(symbol == 'e'){
+        return new JsonNumber(geteNumber(symbol,jsonStream));
+    }
+    else if(symbol == 'E'){
+        //       return new JsonNumber(//from a function);
+    }
+    return nullptr;
+}
 JsonValue* JsonManager::readJson(stringstream& jsonStream) {
     readWhitespace(jsonStream);
     char symbol = jsonStream.peek();
@@ -254,21 +165,129 @@ JsonValue* JsonManager::readJson(stringstream& jsonStream) {
         default: throw runtime_error(" Unexpected character occured !");
     }
 }
-stringstream JsonManager::openFile(){
-    ifstream jsonFile(dbFile, ios::in);
-    stringstream jsonStream;
+void JsonManager::readWhitespace(stringstream &jsonStream){
+    while (isWhiteSpace(jsonStream.peek())) {
+        jsonStream.get();
+    }
+}
+bool JsonManager::isWhiteSpace(char symbol) {
+    string whitespaces = " \n\r\t";
+    // StackOverflow :
+    return whitespaces.find(symbol) != string::npos;
+}
+bool JsonManager::isOperation(char symbol){
+    return symbol =='+' || symbol =='-';
+}
+bool JsonManager::isDigit(char symbol) {
+    return symbol >='1' && symbol <= '9';
+}
+bool JsonManager::readLiteral(stringstream& jsonStream, const string& exp){
+    char buffer[exp.size()];
+    jsonStream.read(buffer, exp.size());
+    return exp == buffer;
+}
+double JsonManager::geteNumber(char symbol, stringstream& jsonStream){
+    if (symbol != 'e' && symbol != 'E'){
+        throw runtime_error(" Expected to be 'e' or 'E' ");
+    }
+    symbol = jsonStream.get();
+    if(isOperation(symbol)){
+        switch (symbol){
+            case '+':{
+                symbol = jsonStream.get();
+                double value = getNumber(symbol,jsonStream);
+                return pow(10,value);
+            }
+            case '-':{
+                symbol = jsonStream.get();
+                double value = getNumber(symbol,jsonStream);
+                return pow(10,-value);
+            }
+            default: throw runtime_error(" After operation there must be a digit ");
+        }
+    }
+    else if (isDigit(symbol)) {
+        double value = getNumber(symbol,jsonStream);
+        return pow(10,value);
+    }
+    else {
+        throw runtime_error(" Expected digit after 'e', 'E' ");
+    }
+}
+double JsonManager::getNumber(char symbol,stringstream& jsonStream){
+    stringstream parsingStream;
+    if(!isDigit(symbol)){
+        throw runtime_error("Unexpected symbol in number");
+    }
+    int dotCounter = -1;
+    do{
+        if(symbol == '.'){
+            parsingStream << symbol;
+            dotCounter +=1;
+            if(dotCounter > 0){
+                throw runtime_error("too many '.");
+            }
+            if(!isDigit(jsonStream.peek())){
+                throw runtime_error("After . there must be a digit");
+            }
+            symbol = jsonStream.get();
+            continue;
+        }
+        parsingStream << symbol;
+        symbol = jsonStream.peek();
+        if(symbol == ','){
+            break;
+        }
+        else {
+            symbol = jsonStream.get();
+        }
+    }
+    while (isDigit(symbol) || symbol == '.' || symbol == '0');
+    double power = 1;
+    if(symbol == 'e'){
+        power = geteNumber(symbol,jsonStream);
+    }
+    readWhitespace(jsonStream);
+
+    double value = 0;
+    parsingStream >> value;
+    return pow(value, power);
+}
+bool JsonManager::getIsFileOpened(){
+    return isFileOpened;
+}
+JsonManager::JsonManager(){
+    isFileOpened= false;
+}
+void JsonManager::openFile(string& fileFromConsole){
+    ifstream jsonFile(fileFromConsole, ios::in);
+    if(!jsonFile){
+        cerr << " File with name " << fileFromConsole << " is not found ! \n";
+        cout << " Mading empty file with name " << fileFromConsole << endl;
+        ofstream out(fileFromConsole, ios::out);
+        if(!out){
+            throw runtime_error(" Please, reload the program !");
+        }
+        out.close();
+        return;
+    }
+    isFileOpened = true;
+    dbFile = fileFromConsole;
     string line;
     while(!jsonFile.eof()){
         getline(jsonFile, line);
-        jsonStream << line;
+        jsonInfo << line;
     }
+    cout << " Successfully opened file : " << fileFromConsole << endl;
     jsonFile.close();
-    return jsonStream;
 }
 bool JsonManager::validateJsonFile(){
-    stringstream jsonStream = openFile();
+    if(!isFileOpened){
+        cerr << " No file opened to use validate command !";
+        return false;
+    }
     try {
-        readJson(jsonStream);
+        readJson(jsonInfo);
     }
     catch (const char* message){
         cout << message << endl;
@@ -278,12 +297,45 @@ bool JsonManager::validateJsonFile(){
     return true;
 }
 void JsonManager::print() {
-   stringstream jsonStream = openFile();
-   JsonValue* value = readJson(jsonStream);
+    if(!isFileOpened) {
+        cerr << "No file opened to use print command !";
+        return;
+    }
+   JsonValue* value = readJson(jsonInfo);
    value->print();
 }
 void JsonManager::search(string& key){
-    stringstream jsonStream = openFile();
-    JsonValue* value = readJson(jsonStream);
+    if(!isFileOpened) {
+        cerr << " No file opened to use search command !";
+        return;
+    }
+    JsonValue* value = readJson(jsonInfo);
     value->searchFromKey(key);
+}
+void JsonManager::help(){
+    cout << "The following commands are supported:\n"
+            "\topen <file>\topens <file>\n"
+            "\tclose\t\t\tcloses currently opened file\n"
+            "\tsave\t\t\tsaves the currently open file\n"
+            "\tsaveas <file>\tsaves the currently open file in <file>\n"
+            "\thelp\t\t\tprints this information\n"
+            "\tvalidate\t\tchecks if file i validate\n"
+            "\tprint\t\t\tprints the content\n"
+            "\tsearch <key>\tprints content by <key>\n "
+            "\tset <path> <string>\t\tchange the value of <path> to <string>\n "
+            "\tcreate <path> <string>\t\tkey is <path>, <string> is adding element in the content in <path>."
+            " If there is no <path> the <string> is added to the end of the file\n "
+            "\tdelete <path>\tdeletes content in <path>\n"
+            "\tmove <from> <to>\tcontent from <from> go to <to>\n";
+
+}
+void JsonManager::closeFile() {
+    if(!isFileOpened) {
+        cerr << " No file opened to use close command !";
+        return;
+    }
+    cout << " Successfully close file " <<dbFile <<endl;
+    dbFile.clear();
+    jsonInfo.clear();
+    isFileOpened = false;
 }

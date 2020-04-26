@@ -12,8 +12,8 @@ class SearchCommand : public ICommand {
 public:
     SearchCommand(): ICommand (std::string("search")) {};
     void execute(JsonManager& jsonManager) {
-        //TODO JSON-Manager , assert, calling function from JSON-Manager
-
+        assert(arguments.size() == 1);
+        jsonManager.search(arguments[0]);
     }
 };
 #endif //JSON_PARSER_SEARCHCOMMAND_H

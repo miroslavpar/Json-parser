@@ -14,8 +14,10 @@
 using namespace std;
 class JsonManager {
 private:
-    const string dbFile;
-
+    string dbFile;
+    stringstream jsonInfo;
+    bool isFileOpened;
+private:
     //The main functionality :
     JsonArray* readArray (stringstream&);
     JsonValue* readValue (stringstream&);
@@ -24,21 +26,24 @@ private:
     JsonValue* readNumber(stringstream&);
     JsonValue* readJson(stringstream&);
 
-
+private:
     // Helping functions:
     void readWhitespace(stringstream&);
     bool isWhiteSpace(char);
     bool isOperation(char);
     bool isDigit(char);
     bool readLiteral(stringstream&,const string&);
-    stringstream openFile();
     double geteNumber(char, stringstream&);
     double getNumber(char,stringstream&);
+    bool getIsFileOpened();
 public:
-    JsonManager(const string&);
+    JsonManager();
+    void openFile(string&);
     bool validateJsonFile();
     void print();
     void search(string&);
+    void help();
+    void closeFile();
 };
 
 

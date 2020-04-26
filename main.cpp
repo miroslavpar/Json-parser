@@ -1,6 +1,7 @@
 #include <iostream>
 #include "dbmanager/JsonManager.h"
-
+#include <fstream>
+#include "Invoker.h"
 int main() {
     std::string alabala = "{\n"
                           "    \"id\": \"fdsfsdf\",\n"
@@ -31,10 +32,22 @@ int main() {
 //        cout << e<<endl;
 //    }
 //
-    string file = "jsonFile.txt";
-    string key = "tags";
-    JsonManager jsonManager(file);
-    jsonManager.print();
-    jsonManager.search(key);
+//    string file = "jsonFile.txt";
+//    string key = "tags";
+//    JsonManager jsonManager(file);
+//    jsonManager.print();
+  //  jsonManager.search(key);
+//    fstream in("alabala.txt",ios::in| ios::out);
+//    if(!in){
+//        cout << " Error";
+//    }
+//    in.close();
+    JsonManager manager;
+//    string file = "jsonFile.txt";
+//    manager.openFile(file);
+//    string id = "id";
+//    manager.search(id);
+        Invoker invoker;
+        invoker.run();
     return 0;
 }
