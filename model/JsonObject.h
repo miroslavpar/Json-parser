@@ -14,9 +14,14 @@ class JsonObject : public JsonValue {
 private:
     unordered_map<string,JsonValue*> properties;
 public:
-    JsonObject(unordered_map<string,JsonValue*>&);
-    void searchFromKey(string& );
-    void printJustValue();
-    void print();
+    JsonObject();
+    explicit JsonObject(unordered_map<string,JsonValue*>&);
+    void searchFromKey(const string&)const;
+    void print()const;
+    bool checkKeyByString(const string&)const;
+    void set(const string&, JsonValue*);
+    Type getType()const;
+    JsonValue* getSecondPropertyByKey(const string&)const;
+    void write(ofstream&)const;
 };
 #endif //JSON_PARSER_JSONOBJECT_H

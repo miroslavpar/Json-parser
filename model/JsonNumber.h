@@ -10,9 +10,12 @@ class JsonNumber : public JsonValue {
 private:
     double num;
 public:
-    JsonNumber(double);
-    void searchFromKey(string& );
-    void printJustValue();
-    void print();
+    explicit JsonNumber(double);
+    JsonNumber();
+    void print()const;
+    Type getType()const;
+    void set(double);
+    double getValueFromJsonNumber()const;
+    void write(ofstream&)const;
 };
 #endif //JSON_PARSER_JSONNUMBER_H

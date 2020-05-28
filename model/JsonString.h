@@ -9,12 +9,15 @@
 
 class JsonString : public JsonValue{
 private:
-    std::string value;
+    string value;
 public:
-    JsonString(std::string&);
-    void searchFromKey(string&);
-    void printJustValue();
-    void print();
+    JsonString();
+    explicit JsonString(string&);
+    void print()const;
+    Type getType()const;
+    void set(string&);
+    string getValueFromJsonString()const;
+    void write(ofstream&)const;
 };
 
 #endif //JSON_PARSER_JSONSTRING_H

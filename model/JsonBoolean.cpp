@@ -3,23 +3,32 @@
 //
 #include "JsonBoolean.h"
 using namespace std;
-
-JsonBoolean::JsonBoolean(bool _value):value(_value){}
-void JsonBoolean::searchFromKey(string & key) {
-    printJustValue();
+JsonBoolean::JsonBoolean(){
+    type = JSONBOOLEAN;
 }
-void JsonBoolean::printJustValue(){
-    if(value){
-        cout << "true";
-    }
+JsonBoolean::JsonBoolean(bool _value):value(_value){
+    type = JSONBOOLEAN;
+}
+void JsonBoolean::print()const{
+    if(value)
+        cout  << "true";
     else {
-        cout << "false";
+        cout  << "false";
     }
 }
-void JsonBoolean::print(){
-    std::cout << value <<','<<endl;
+Type JsonBoolean::getType()const {
+    return type;
 }
-
-
-
-
+void JsonBoolean::set(bool param){
+    value = param;
+}
+bool JsonBoolean::getValueFromJsonBoolean() const {
+    return value;
+}
+void JsonBoolean::write(ofstream & os)const {
+    if (value)
+        os << "true";
+   else {
+        os << "false";
+    }
+}

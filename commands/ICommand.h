@@ -8,7 +8,6 @@
 #include <vector>
 #include <string>
 #include "../dbmanager/JsonManager.h"
-
 class ICommand {
 protected:
     string commandName;

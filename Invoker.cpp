@@ -9,6 +9,11 @@
 #include "commands/PrintCommand.h"
 #include "commands/HelpCommand.h"
 #include "commands/CloseCommand.h"
+#include "commands/SaveCommand.h"
+#include "commands/SaveAsCommand.h"
+#include "commands/ExitCommand.h"
+#include "commands/SetCommand.h"
+
 
 
 
@@ -19,11 +24,17 @@ Invoker::Invoker() {
     commands.push_back(make_unique<PrintCommand>());
     commands.push_back(make_unique<HelpCommand>());
     commands.push_back(make_unique<CloseCommand>());
+    commands.push_back(make_unique<SaveCommand>());
+    commands.push_back(make_unique<SaveAsCommand>());
+    commands.push_back(make_unique<ExitCommand>());
+    commands.push_back(make_unique<SetCommand>());
+
+
 }
 void Invoker::run() {
     string line;
     for(;;){
-        cout << "Enter command: " << endl;
+        cout << "$: ";
         getline(cin, line);
         parseLine(line);
     }
@@ -50,7 +61,7 @@ void Invoker::applyArguments(const string &commandName, vector<string> arguments
         }
     }
     if(counterForCommands == 0){
-        cout << " WRONG COMMAND\n";
-        cout << " Please use \"help\" coomand to see supported commands. \n";
+        cout << "WRONG COMMAND\n";
+        cout << "Please use \"help\" coomand to see supported commands!\n";
     }
 }

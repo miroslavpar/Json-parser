@@ -11,8 +11,8 @@
 class DeleteCommand : public ICommand {
     DeleteCommand(): ICommand (std::string("delete")) {};
     void execute(JsonManager& jsonManager) {
-        //TODO JSON-Manager , assert, calling function from JSON-Manager
-
+        assert(arguments.size() == 1);
+        jsonManager.deleteByPath(arguments[0]);
     }
 };
 #endif //JSON_PARSER_DELETECOMMAND_H

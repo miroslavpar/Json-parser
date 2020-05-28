@@ -7,7 +7,6 @@
 
 #include "ICommand.h"
 #include <unistd.h>
-
 class OpenFileCommand: public ICommand{
 public:
     OpenFileCommand(): ICommand (std::string("open")) {};

@@ -9,12 +9,14 @@
 #include <vector>
 class JsonArray : public JsonValue {
 private:
-    std::vector<JsonValue*> value;
+    vector<JsonValue*> value;
 public:
     JsonArray();
-    JsonArray(std::vector<JsonValue*>&);
-    void searchFromKey(string&);
-    void printJustValue();
-    void print ();
+    explicit JsonArray(vector<JsonValue*>&);
+    void print()const;
+    void setValue(const string&);
+    Type getType()const;
+    void set(int, JsonValue*);
+    void write(ofstream&)const;
 };
 #endif //JSON_PARSER_JSONARRAY_H

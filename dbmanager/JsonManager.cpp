@@ -3,13 +3,12 @@
 //
 
 #include "JsonManager.h"
+#include "../Accessors/Accessor.h"
 #include "../model/JsonString.h"
 #include "../model/JsonBoolean.h"
 #include "../model/JsonNumber.h"
 #include <cmath>
-
-
-JsonArray* JsonManager::readArray(stringstream& jsonStream) {
+JsonArray* JsonManager::readArray(stringstream& jsonStream)const {
     char symbol = jsonStream.get();
     if(symbol != '['){
         throw runtime_error(" It's not starting with '[' ");
@@ -33,7 +32,7 @@ JsonArray* JsonManager::readArray(stringstream& jsonStream) {
     }
     return new JsonArray(arrayValue);
 }
-JsonValue* JsonManager::readValue(stringstream& jsonStream) {
+JsonValue* JsonManager::readValue(stringstream& jsonStream)const {
     readWhitespace(jsonStream);
     JsonValue* value;
     char symbol = jsonStream.peek();
@@ -51,7 +50,7 @@ JsonValue* JsonManager::readValue(stringstream& jsonStream) {
         }
         case 'n':
             if (!readLiteral(jsonStream, "null"))
-                throw runtime_error( "Expected to be : null ");
+                throw runtime_error("Expected to be : null ");
             value = nullptr;
             break;
 
@@ -90,7 +89,7 @@ JsonValue* JsonManager::readValue(stringstream& jsonStream) {
     readWhitespace(jsonStream);
     return value;
 }
-JsonObject* JsonManager::readObject(stringstream& jsonStream) {
+JsonObject* JsonManager::readObject(stringstream& jsonStream) const{
     readWhitespace(jsonStream);
     char symbol = jsonStream.get();
     if(symbol != '{'){
@@ -123,7 +122,7 @@ JsonObject* JsonManager::readObject(stringstream& jsonStream) {
     }
     return new JsonObject(map);
 }
-string JsonManager::readString(stringstream& jsonStream) {
+string JsonManager::readString(stringstream& jsonStream)const {
     if(jsonStream.get() != '"'){
         throw runtime_error("It's not starting with \" ");
     }
@@ -135,7 +134,7 @@ string JsonManager::readString(stringstream& jsonStream) {
     }
     return string(key.begin(),key.end());
 }
-JsonValue* JsonManager::readNumber(stringstream& jsonStream) {
+JsonValue* JsonManager::readNumber(stringstream& jsonStream)const {
     char symbol = jsonStream.get();
     if(isDigit(symbol)){
         double numValue = getNumber(symbol,jsonStream);
@@ -154,7 +153,7 @@ JsonValue* JsonManager::readNumber(stringstream& jsonStream) {
     }
     return nullptr;
 }
-JsonValue* JsonManager::readJson(stringstream& jsonStream) {
+JsonValue* JsonManager::readJson(stringstream& jsonStream)const {
     readWhitespace(jsonStream);
     char symbol = jsonStream.peek();
     switch (symbol) {
@@ -162,31 +161,31 @@ JsonValue* JsonManager::readJson(stringstream& jsonStream) {
             return readObject(jsonStream);
         case '[':
             return readArray(jsonStream);
-        default: throw runtime_error(" Unexpected character occured !");
+        default: throw runtime_error(" Unexpected character occurred !");
     }
 }
-void JsonManager::readWhitespace(stringstream &jsonStream){
-    while (isWhiteSpace(jsonStream.peek())) {
+void JsonManager::readWhitespace(stringstream &jsonStream)const{
+    while (isWhiteSpace(jsonStream.peek())){
         jsonStream.get();
     }
 }
-bool JsonManager::isWhiteSpace(char symbol) {
+bool JsonManager::isWhiteSpace(char symbol)const {
     string whitespaces = " \n\r\t";
     // StackOverflow :
     return whitespaces.find(symbol) != string::npos;
 }
-bool JsonManager::isOperation(char symbol){
+bool JsonManager::isOperation(char symbol)const{
     return symbol =='+' || symbol =='-';
 }
-bool JsonManager::isDigit(char symbol) {
-    return symbol >='1' && symbol <= '9';
+bool JsonManager::isDigit(char symbol)const {
+    return (symbol >='1' && symbol <= '9') || symbol == '0';
 }
-bool JsonManager::readLiteral(stringstream& jsonStream, const string& exp){
+bool JsonManager::readLiteral(stringstream& jsonStream, const string& exp)const{
     char buffer[exp.size()];
     jsonStream.read(buffer, exp.size());
     return exp == buffer;
 }
-double JsonManager::geteNumber(char symbol, stringstream& jsonStream){
+double JsonManager::geteNumber(char symbol, stringstream& jsonStream)const{
     if (symbol != 'e' && symbol != 'E'){
         throw runtime_error(" Expected to be 'e' or 'E' ");
     }
@@ -214,7 +213,7 @@ double JsonManager::geteNumber(char symbol, stringstream& jsonStream){
         throw runtime_error(" Expected digit after 'e', 'E' ");
     }
 }
-double JsonManager::getNumber(char symbol,stringstream& jsonStream){
+double JsonManager::getNumber(char symbol,stringstream& jsonStream)const{
     stringstream parsingStream;
     if(!isDigit(symbol)){
         throw runtime_error("Unexpected symbol in number");
@@ -253,72 +252,80 @@ double JsonManager::getNumber(char symbol,stringstream& jsonStream){
     parsingStream >> value;
     return pow(value, power);
 }
-bool JsonManager::getIsFileOpened(){
-    return isFileOpened;
-}
 JsonManager::JsonManager(){
     isFileOpened= false;
 }
-void JsonManager::openFile(string& fileFromConsole){
+void JsonManager::openFile( string& fileFromConsole){
+    if(isFileOpened){
+        cerr << "Cannot open file twice !\n";
+        return;
+    }
     ifstream jsonFile(fileFromConsole, ios::in);
     if(!jsonFile){
-        cerr << " File with name " << fileFromConsole << " is not found ! \n";
-        cout << " Mading empty file with name " << fileFromConsole << endl;
+        cerr << "File with name " << fileFromConsole << " is not found ! \n";
+        cout << "Making empty file with name " << fileFromConsole << endl;
         ofstream out(fileFromConsole, ios::out);
         if(!out){
-            throw runtime_error(" Please, reload the program !");
+            throw runtime_error("Please, reload the program !");
         }
         out.close();
         return;
     }
     isFileOpened = true;
     dbFile = fileFromConsole;
-    string line;
-    while(!jsonFile.eof()){
-        getline(jsonFile, line);
-        jsonInfo << line;
-    }
-    cout << " Successfully opened file : " << fileFromConsole << endl;
-    jsonFile.close();
+    jsonInfo << jsonFile.rdbuf();
+    workingJson = readObject(jsonInfo);
+    jsonInfo.seekg(0);
+    cout << "Successfully opened file : " << fileFromConsole << endl;
 }
 bool JsonManager::validateJsonFile(){
     if(!isFileOpened){
-        cerr << " No file opened to use validate command !";
+        cerr << "No file opened to use validate command !";
         return false;
     }
     try {
         readJson(jsonInfo);
     }
-    catch (const char* message){
-        cout << message << endl;
+    catch (...){
+        cout << "File is not in JSON standard!\n";
         return false;
     }
-    cout << " Json file is valid " << endl;
+    cout << "Json file is valid " << endl;
+    jsonInfo.seekg(0);
     return true;
 }
-void JsonManager::print() {
+void JsonManager::print(){
+//    stringstream jsonInfoCopy;
+//    jsonInfoCopy << jsonInfo.rdbuf();
     if(!isFileOpened) {
-        cerr << "No file opened to use print command !";
+        cerr << "No file opened to use print command !\n";
         return;
     }
-   JsonValue* value = readJson(jsonInfo);
-   value->print();
+//   JsonValue* value = readJson(jsonInfoCopy);
+   workingJson->print();
+  // jsonInfo.seekg(0);
 }
-void JsonManager::search(string& key){
+void JsonManager::search(const string& key){
+//    stringstream jsonInfoCopy;
+//    jsonInfoCopy << jsonInfo.rdbuf();
     if(!isFileOpened) {
-        cerr << " No file opened to use search command !";
+        cerr << "No file opened to use search command !\n";
         return;
     }
-    JsonValue* value = readJson(jsonInfo);
-    value->searchFromKey(key);
+//    JsonValue* value = readJson(jsonInfoCopy);
+    cout << " Searching value is : ";
+    workingJson->searchFromKey(key);
+    cout << "\n";
+    jsonInfo.seekg(0);
 }
-void JsonManager::help(){
+void JsonManager::help() const{
     cout << "The following commands are supported:\n"
             "\topen <file>\topens <file>\n"
             "\tclose\t\t\tcloses currently opened file\n"
             "\tsave\t\t\tsaves the currently open file\n"
-            "\tsaveas <file>\tsaves the currently open file in <file>\n"
+            "\tsaveAs <file>\tsaves the currently open file in <file>\n"
             "\thelp\t\t\tprints this information\n"
+            "\texit\t\t\texits from program\n"
             "\tvalidate\t\tchecks if file i validate\n"
             "\tprint\t\t\tprints the content\n"
             "\tsearch <key>\tprints content by <key>\n "
@@ -327,15 +334,179 @@ void JsonManager::help(){
             " If there is no <path> the <string> is added to the end of the file\n "
             "\tdelete <path>\tdeletes content in <path>\n"
             "\tmove <from> <to>\tcontent from <from> go to <to>\n";
-
 }
 void JsonManager::closeFile() {
     if(!isFileOpened) {
-        cerr << " No file opened to use close command !";
+        cerr << "No file opened to use close command !";
         return;
     }
-    cout << " Successfully close file " <<dbFile <<endl;
+    cout << "Successfully close file " <<dbFile << endl;
     dbFile.clear();
     jsonInfo.clear();
     isFileOpened = false;
+}
+void JsonManager::save() {
+    stringstream jsonInfoCopy;
+   // jsonInfoCopy << jsonInfo.rdbuf();
+    if(!isFileOpened) {
+        cerr << "The file is closed or never has been opened !";
+        return;
+    }
+    ofstream oFile(dbFile,ios::trunc | ios::out);
+    if(!oFile) {
+        cerr << "File cannot be opened !\n";
+        return;
+    }
+//    oFile << jsonInfoCopy.rdbuf();
+//
+//    cout << "Changes are saved !\n";
+//    oFile.close();
+//    jsonInfo.seekg(0);
+    workingJson->write(oFile);
+    cout << "Changes are saved !\n";
+    oFile.close();
+    jsonInfoCopy.clear();
+}
+void JsonManager::saveAs(const string& currentFile) {
+    stringstream jsonInfoCopy;
+    jsonInfoCopy << jsonInfo.rdbuf();
+    if(!isFileOpened) {
+        cerr << "Source file has never been opened or has been closed !\n";
+        return;
+    }
+    ofstream oFile(currentFile);
+    if(!oFile){
+        cerr << "File with name " << currentFile << " cannot be accessed!\n";
+    }
+    oFile << jsonInfoCopy.rdbuf();
+    cout << "Everything is saved in file : " << currentFile << endl;
+    oFile.close();
+    jsonInfo.seekg(0);
+    jsonInfoCopy.clear();
+}
+void JsonManager::exitFromFunction()const{
+    exit(0);
+}
+int convertFromString(const string& line){
+    int lineSymbols = line.size();
+    int res = 0;
+    for(int i = 0 ; i  <lineSymbols ; i++){
+        if(line[i] != '[' && line[i] != ']'){
+            res = res * 10 + line[i] - '0';
+        }
+    }
+    return res;
+}
+vector<Accessor> parseLineIntoAccessors(const string& line){
+    size_t lineSymbols = line.size();
+    vector<Accessor> accessors;
+    string parsedWord;
+    for (int i = 0 ; i < lineSymbols ; i++){
+        if(line[i] == '.' || line[i] == '[' ||line[i] ==']' || i == lineSymbols - 1){
+
+            if(line[i] == ']'){
+                parsedWord.push_back(line[i]);
+                Accessor obj(parsedWord,convertFromString(parsedWord));
+                accessors.push_back(obj);
+                parsedWord.clear();
+                continue;
+            }
+            if(i == lineSymbols - 1){
+                parsedWord.push_back(line[i]);
+                Accessor obj(parsedWord,-1);
+                accessors.push_back(obj);
+                parsedWord.clear();
+                continue;
+            }
+            Accessor obj(parsedWord,-1);
+            accessors.push_back(obj);
+            parsedWord.clear();
+            if (line[i] =='.')
+                continue;
+
+        }
+        parsedWord.push_back(line[i]);
+    }
+    return accessors;
+}
+void JsonManager::set(const string& key, stringstream& value) {
+    if(!isFileOpened){
+        cerr << "No file is opened to use set command !\n";
+        return;
+    }
+    JsonValue* jsonValue;
+    try{
+        jsonValue = readValue(value);
+    }
+    catch(...){
+        cerr << "VALUE is not in JSON standard!\n";
+        return;
+    }
+    vector<Accessor> accessors = parseLineIntoAccessors(key);
+    int counter = accessors.size() - 1;
+    JsonObject* jsonObject = workingJson;
+    for (auto & it : accessors) {
+        if(jsonObject->checkKeyByString(it.getField())) {
+            JsonValue* checkType = jsonObject->getSecondPropertyByKey(it.getField());
+            if (checkType->getType() == JSONOBJECT) {
+                if (it.getValue() == -1) {
+                    JsonObject* setTypeObj = dynamic_cast<JsonObject *>(checkType);
+                    if (counter == 0) {
+                        setTypeObj->set(it.getField(), jsonValue);
+                        return;
+                    }
+                    jsonObject = dynamic_cast<JsonObject*>(checkType);
+                    counter--;
+                    continue;
+                }
+            }
+            //array not done !!!!!
+            else if (checkType->getType() == JSONARRAY){
+                JsonArray* setTypeArr = dynamic_cast<JsonArray*>(checkType);
+                if (counter == 0){
+                    setTypeArr->set(it.getValue(),jsonValue);
+                    break;
+                }
+                counter--;
+                continue;
+            }
+            else if (checkType->getType() == JSONSTRING){
+                JsonString* setTypeStr  = dynamic_cast<JsonString*>(checkType);
+                if(counter == 0){
+                    string temp = jsonValue->getValueFromJsonString();
+                    setTypeStr->set(temp);
+                    break;
+                }
+                counter--;
+                continue;
+            }
+            else if(checkType->getType() == JSONBOOLEAN){
+                JsonBoolean* setTypeBool  = dynamic_cast<JsonBoolean*>(checkType);
+                if(counter == 0){
+                    setTypeBool->set(jsonValue->getValueFromJsonBoolean());
+                    break;
+                }
+                counter--;
+                continue;
+            }
+            else if(checkType->getType() == JSONNUMBER) {
+                JsonNumber* setTypeNum = dynamic_cast<JsonNumber*>(checkType);
+                if(counter == 0) {
+                    setTypeNum->set(jsonValue->getValueFromJsonNumber());
+                    break;
+                }
+                counter--;
+                continue;
+            }
+        }
+        else {
+            cerr << "Not existing key !\n";
+            return;
+        }
+    }
+    cout << "Changes are made successfully!\n";
+
+}
+void JsonManager::deleteByPath(const string& key) {
+    vector<Accessor> accessors = parseLineIntoAccessors(key);
 }

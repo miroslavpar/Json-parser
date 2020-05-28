@@ -9,9 +9,11 @@
 #include "../dbmanager/JsonManager.h"
 
 class SaveAsCommand : public ICommand {
-    SaveAsCommand(): ICommand (std::string("saveas")) {};
+public:
+    SaveAsCommand(): ICommand (std::string("saveAs")) {};
     void execute(JsonManager& jsonManager) {
-        //TODO JSON-Manager , assert, calling function from JSON-Manager
+        assert(arguments.size() == 1);
+        jsonManager.saveAs(arguments[0]);
 
     }
 };

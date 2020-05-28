@@ -17,33 +17,38 @@ private:
     string dbFile;
     stringstream jsonInfo;
     bool isFileOpened;
+    JsonObject* workingJson;
 private:
     //The main functionality :
-    JsonArray* readArray (stringstream&);
-    JsonValue* readValue (stringstream&);
-    JsonObject* readObject(stringstream&);
-    string readString(stringstream&);
-    JsonValue* readNumber(stringstream&);
-    JsonValue* readJson(stringstream&);
+    JsonArray* readArray (stringstream&)const;
+    JsonValue* readValue (stringstream&)const;
+    JsonObject* readObject(stringstream&)const;
+    string readString(stringstream&)const;
+    JsonValue* readNumber(stringstream&)const;
+    JsonValue* readJson(stringstream&)const;
 
 private:
     // Helping functions:
-    void readWhitespace(stringstream&);
-    bool isWhiteSpace(char);
-    bool isOperation(char);
-    bool isDigit(char);
-    bool readLiteral(stringstream&,const string&);
-    double geteNumber(char, stringstream&);
-    double getNumber(char,stringstream&);
-    bool getIsFileOpened();
+    void readWhitespace(stringstream&)const;
+    bool isWhiteSpace(char)const;
+    bool isOperation(char)const;
+    bool isDigit(char)const;
+    bool readLiteral(stringstream&,const string&)const;
+    double geteNumber(char, stringstream&)const;
+    double getNumber(char,stringstream&)const;
 public:
     JsonManager();
     void openFile(string&);
     bool validateJsonFile();
     void print();
-    void search(string&);
-    void help();
+    void search(const string&);
+    void help() const;
     void closeFile();
+    void save();
+    void saveAs(const string&);
+    void exitFromFunction()const;
+    void set(const string&, stringstream&);
+    void deleteByPath(const string&);
 };
 
 

@@ -3,16 +3,26 @@
 //
 
 #include "JsonString.h"
-
-JsonString::JsonString(std::string& _value) : value(_value){};
-
-void JsonString::print() {
-    std::cout  << '"'<<value<<'"'<< ',';
+#include <fstream>
+JsonString::JsonString(){
+    type = JSONSTRING;
 }
-void JsonString::printJustValue() {
-    std::cout  << '"'<< value <<'"';
-}
-void JsonString::searchFromKey(string &) {
-    printJustValue();
+JsonString::JsonString(string& _value) : value(_value){
+    type = JSONSTRING;
 }
 
+void JsonString::print() const{
+    cout  << '"'<<value<<'"';
+}
+Type JsonString::getType()const {
+    return type;
+}
+void JsonString::set(string& _value) {
+    value = _value;
+}
+string JsonString::getValueFromJsonString()const{
+    return value;
+}
+void JsonString::write(ofstream& os)const{
+    os << '"'<< value << '"';
+}

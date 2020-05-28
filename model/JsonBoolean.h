@@ -10,9 +10,13 @@ class JsonBoolean : public JsonValue {
 private:
     bool value;
 public:
+    JsonBoolean();
     JsonBoolean(bool);
-    void searchFromKey(string&);
-    void printJustValue();
-    void print();
+    void print()const;
+    Type getType()const;
+    void set(bool);
+    bool getValueFromJsonBoolean()const;
+    void write(ofstream&)const;
+
 };
 #endif //JSON_PARSER_JSONBOOLEAN_H

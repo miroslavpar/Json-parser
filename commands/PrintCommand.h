@@ -10,7 +10,7 @@
 
 class PrintCommand : public ICommand {
 public:
-    PrintCommand(): ICommand (std::string("print")) {};
+    PrintCommand(): ICommand  (string("print")) {};
     void execute(JsonManager& jsonManager) {
         assert(arguments.empty());
         jsonManager.print();
