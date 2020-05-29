@@ -10,17 +10,19 @@ JsonObject::JsonObject(unordered_map<string,JsonValue*>& _properties): propertie
     type = JSONOBJECT;
 }
 static stack<char> openBrackets;
-void setSpaces(int n){
+string setSpaces(int n){
+    string spaces;
     for(int i = 0 ; i< n ; i++){
-        cout << ' ';
+        spaces.push_back(' ');
     }
+    return spaces;
 }
 void JsonObject::print() const{
     int counter = 0;
     cout << "{\n";
     openBrackets.push('{');
     for(auto& it : properties) {
-        setSpaces(openBrackets.size() * 3);
+        cout << setSpaces(openBrackets.size() * 3);
         cout <<' '<<'"'<<it.first<<'"'<<' '<< ':'<< ' ';
         it.second->print();
         counter++;
@@ -32,7 +34,7 @@ void JsonObject::print() const{
     openBrackets.pop();
     if(!openBrackets.empty()){
         cout << '\n';
-        setSpaces(openBrackets.size() * 3);
+        cout << setSpaces(openBrackets.size() * 3);
         cout << "},\n";
     }
     else{
@@ -78,9 +80,9 @@ void JsonObject::write(ofstream& os)const{
     os << "{\n";
     openBrackets.push('{');
     for(auto& it : properties) {
-        setSpaces(openBrackets.size() * 3);
+        os << setSpaces(openBrackets.size() * 3);
         os <<' '<<'"'<<it.first<<'"'<<' '<< ':'<< ' ';
-        it.second->print();
+        it.second->write(os);
         counter++;
         if(counter != properties.size())
             os << ", \n";
@@ -89,10 +91,24 @@ void JsonObject::write(ofstream& os)const{
     openBrackets.pop();
     if(!openBrackets.empty()){
         os << '\n';
-        setSpaces(openBrackets.size() * 3);
+        os << setSpaces(openBrackets.size() * 3);
         os << "},\n";
     }
     else{
         os << "}\n";
     }
+}
+void JsonObject::deleteByKey(const string& key) {
+    for (auto& it: properties) {
+        if (key == it.first) {
+            properties.erase(key);
+            return;
+        }
+        else if(it.second->getType() == JSONOBJECT){
+            it.second->deleteByKey(key);
+        }
+    }
+}
+void JsonObject::insertValue(pair<string,JsonValue*> insertedValue) {
+    properties.insert(insertedValue);
 }

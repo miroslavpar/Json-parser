@@ -10,10 +10,15 @@
 
 
 class CreateCommand : public ICommand {
+public:
     CreateCommand(): ICommand (std::string("create")) {};
     void execute(JsonManager& jsonManager) {
-        //TODO JSON-Manager , assert, calling function from JSON-Manager
-
+        assert(!arguments.empty());
+        stringstream argFromConsole;
+        for (int i = 1 ; i <= arguments.size(); i++){
+            argFromConsole << arguments[i];
+        }
+        jsonManager.create(arguments[0],argFromConsole);
     }
 };
 #endif //JSON_PARSER_CREATECOMMAND_H

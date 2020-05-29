@@ -294,29 +294,21 @@ bool JsonManager::validateJsonFile(){
     jsonInfo.seekg(0);
     return true;
 }
-void JsonManager::print(){
-//    stringstream jsonInfoCopy;
-//    jsonInfoCopy << jsonInfo.rdbuf();
+void JsonManager::print()const{
     if(!isFileOpened) {
         cerr << "No file opened to use print command !\n";
         return;
     }
-//   JsonValue* value = readJson(jsonInfoCopy);
    workingJson->print();
-  // jsonInfo.seekg(0);
 }
-void JsonManager::search(const string& key){
-//    stringstream jsonInfoCopy;
-//    jsonInfoCopy << jsonInfo.rdbuf();
+void JsonManager::search(const string& key)const{
     if(!isFileOpened) {
         cerr << "No file opened to use search command !\n";
         return;
     }
-//    JsonValue* value = readJson(jsonInfoCopy);
     cout << " Searching value is : ";
     workingJson->searchFromKey(key);
     cout << "\n";
-    jsonInfo.seekg(0);
 }
 void JsonManager::help() const{
     cout << "The following commands are supported:\n"
@@ -329,7 +321,7 @@ void JsonManager::help() const{
             "\tvalidate\t\tchecks if file i validate\n"
             "\tprint\t\t\tprints the content\n"
             "\tsearch <key>\tprints content by <key>\n "
-            "\tset <path> <string>\t\tchange the value of <path> to <string>\n "
+            "\tset <path> <string>\t\tchange the value of <path> to <string>   for <path> use <string>.<string>...\n "
             "\tcreate <path> <string>\t\tkey is <path>, <string> is adding element in the content in <path>."
             " If there is no <path> the <string> is added to the end of the file\n "
             "\tdelete <path>\tdeletes content in <path>\n"
@@ -346,8 +338,6 @@ void JsonManager::closeFile() {
     isFileOpened = false;
 }
 void JsonManager::save() {
-    stringstream jsonInfoCopy;
-   // jsonInfoCopy << jsonInfo.rdbuf();
     if(!isFileOpened) {
         cerr << "The file is closed or never has been opened !";
         return;
@@ -357,19 +347,14 @@ void JsonManager::save() {
         cerr << "File cannot be opened !\n";
         return;
     }
-//    oFile << jsonInfoCopy.rdbuf();
-//
-//    cout << "Changes are saved !\n";
-//    oFile.close();
-//    jsonInfo.seekg(0);
+
     workingJson->write(oFile);
     cout << "Changes are saved !\n";
     oFile.close();
-    jsonInfoCopy.clear();
+    isFileOpened = false;
+    jsonInfo.clear();
 }
 void JsonManager::saveAs(const string& currentFile) {
-    stringstream jsonInfoCopy;
-    jsonInfoCopy << jsonInfo.rdbuf();
     if(!isFileOpened) {
         cerr << "Source file has never been opened or has been closed !\n";
         return;
@@ -378,11 +363,11 @@ void JsonManager::saveAs(const string& currentFile) {
     if(!oFile){
         cerr << "File with name " << currentFile << " cannot be accessed!\n";
     }
-    oFile << jsonInfoCopy.rdbuf();
+    workingJson->write(oFile);
     cout << "Everything is saved in file : " << currentFile << endl;
     oFile.close();
-    jsonInfo.seekg(0);
-    jsonInfoCopy.clear();
+    isFileOpened = false;
+    jsonInfo.clear();
 }
 void JsonManager::exitFromFunction()const{
     exit(0);
@@ -507,6 +492,43 @@ void JsonManager::set(const string& key, stringstream& value) {
     cout << "Changes are made successfully!\n";
 
 }
-void JsonManager::deleteByPath(const string& key) {
+void JsonManager::deleteByPath(const string& key){
+    if(!isFileOpened){
+        cerr << "No file is opened to use delete command !\n";
+        return;
+    }
     vector<Accessor> accessors = parseLineIntoAccessors(key);
+    for(auto& it : accessors){
+        workingJson->deleteByKey(it.getField());
+    }
+}
+void JsonManager::create(const string& key, stringstream& value) {
+    if(!isFileOpened){
+        cerr << "No file is opened to use set command !\n";
+        return;
+    }
+    JsonValue* jsonValue;
+    try{
+        jsonValue = readValue(value);
+    }
+    catch(...){
+        cerr << "VALUE is not in JSON standard!\n";
+        return;
+    }
+    vector<Accessor> accessors = parseLineIntoAccessors(key);
+    int counter = accessors.size() - 1;
+    JsonObject* jsonObject = workingJson;
+    for (auto & it : accessors) {
+        pair<string,JsonValue*> newInsertedValue(it.getField(),jsonValue);
+        if(counter == 0){
+            jsonObject->insertValue(newInsertedValue);
+        }
+        else{
+            JsonValue* checkType = jsonObject->getSecondPropertyByKey(it.getField());
+            if(checkType->getType() == JSONOBJECT){
+                jsonObject = dynamic_cast<JsonObject*> (checkType);
+                counter--;
+            }
+        }
+    }
 }

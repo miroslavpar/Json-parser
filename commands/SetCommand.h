@@ -12,6 +12,7 @@ class SetCommand : public ICommand {
 public:
     SetCommand(): ICommand (std::string("set")) {};
     void execute(JsonManager& jsonManager) {
+        assert(arguments.empty());
         stringstream argFromConsole;
         for (int i = 1 ; i <= arguments.size(); i++){
             argFromConsole << arguments[i];

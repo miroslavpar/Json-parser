@@ -9,6 +9,7 @@
 #include "../dbmanager/JsonManager.h"
 
 class DeleteCommand : public ICommand {
+public:
     DeleteCommand(): ICommand (std::string("delete")) {};
     void execute(JsonManager& jsonManager) {
         assert(arguments.size() == 1);

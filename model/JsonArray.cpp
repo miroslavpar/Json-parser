@@ -44,7 +44,7 @@ void JsonArray::write(ofstream& os) const{
     os << " [ ";
     openArrayBrackets.push(('['));
     for(auto& it : value) {
-        it->print();
+        it->write(os);
         counter++;
         if(counter != value.size())
             os << ", ";

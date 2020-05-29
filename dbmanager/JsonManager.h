@@ -40,8 +40,8 @@ public:
     JsonManager();
     void openFile(string&);
     bool validateJsonFile();
-    void print();
-    void search(const string&);
+    void print()const;
+    void search(const string&)const;
     void help() const;
     void closeFile();
     void save();
@@ -49,6 +49,7 @@ public:
     void exitFromFunction()const;
     void set(const string&, stringstream&);
     void deleteByPath(const string&);
+    void create (const string&,stringstream&);
 };
 
 

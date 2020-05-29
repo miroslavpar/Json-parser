@@ -23,5 +23,7 @@ public:
     Type getType()const;
     JsonValue* getSecondPropertyByKey(const string&)const;
     void write(ofstream&)const;
+    void deleteByKey(const string&);
+    void insertValue(pair<string,JsonValue*>);
 };
 #endif //JSON_PARSER_JSONOBJECT_H

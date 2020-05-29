@@ -13,8 +13,8 @@
 #include "commands/SaveAsCommand.h"
 #include "commands/ExitCommand.h"
 #include "commands/SetCommand.h"
-
-
+#include "commands/DeleteCommand.h"
+#include "commands/CreateCommand.h"
 
 
 Invoker::Invoker() {
@@ -28,8 +28,8 @@ Invoker::Invoker() {
     commands.push_back(make_unique<SaveAsCommand>());
     commands.push_back(make_unique<ExitCommand>());
     commands.push_back(make_unique<SetCommand>());
-
-
+    commands.push_back(make_unique<DeleteCommand>());
+    commands.push_back(make_unique<CreateCommand>());
 }
 void Invoker::run() {
     string line;

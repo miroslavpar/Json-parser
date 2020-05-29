@@ -26,5 +26,6 @@ public:
     virtual bool getValueFromJsonBoolean()const {};
     virtual double getValueFromJsonNumber()const {};
     virtual void write(ofstream&)const = 0;
+    virtual void deleteByKey(const string&){};
 };
 #endif //JSON_PARSER_JSONVALUE_H
