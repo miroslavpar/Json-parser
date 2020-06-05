@@ -504,7 +504,7 @@ void JsonManager::deleteByPath(const string& key){
 }
 void JsonManager::create(const string& key, stringstream& value) {
     if(!isFileOpened){
-        cerr << "No file is opened to use set command !\n";
+        cerr << "No file is opened to use create command !\n";
         return;
     }
     JsonValue* jsonValue;
@@ -526,9 +526,10 @@ void JsonManager::create(const string& key, stringstream& value) {
         else{
             JsonValue* checkType = jsonObject->getSecondPropertyByKey(it.getField());
             if(checkType->getType() == JSONOBJECT){
-                jsonObject = dynamic_cast<JsonObject*> (checkType);
+                jsonObject = dynamic_cast<JsonObject*>(checkType);
                 counter--;
             }
         }
     }
+    cout << "Value with key: " << key << " is made successfully!\n";
 }

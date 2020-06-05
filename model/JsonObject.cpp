@@ -92,7 +92,7 @@ void JsonObject::write(ofstream& os)const{
     if(!openBrackets.empty()){
         os << '\n';
         os << setSpaces(openBrackets.size() * 3);
-        os << "},\n";
+        os << "}\n";
     }
     else{
         os << "}\n";
